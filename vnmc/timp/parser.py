@@ -9,14 +9,18 @@ from vnmc.timp.module import Module
 imp_parser = Lark(r"""
     ?module: "module" name ":" command -> module_def
 
-    ?command: "skip" -> command_skip
+    ?command: seq
             | "if" expr "then" command "else" command "endif" -> command_if_else
-            | command "\n" command -> command_seq
-            | variable "=" expr -> command_assign
             | "#" WORD " "* "\n" command -> comment_left
             | command "#" WORD -> comment_right
             | command " "*
-            | command "@" WORD
+            
+    ?seq: command "\n" command -> command_seq
+        | atomic
+        
+    atomic: variable "=" expr -> command_assign
+          | "skip" -> command_skip
+          | atomic ("@"WORD)+ -> atomic_annotation
 
     variable : WORD
     ?name: WORD
@@ -87,10 +91,14 @@ class TIMPTransformer(lark.Transformer):
     def module_def(self, name, command):
         return Module(name=name, command=command)
 
+    def atomic_annotation(self, command, annotation):
+        command.annotations.add(annotation.value)
+        return command
+
 
 if __name__ == "__main__":
     tree = imp_parser.parse("module test:\nif x then x = z else y = z endif\nx = z\nx=y")
-    transformer = IMPTransformer()
+    transformer = TIMPTransformer()
     module = transformer.transform(tree)
     print(module.pretty())
     print(module.command.accept_visitor(VariableCollector()))

@@ -43,6 +43,9 @@ class CommandVisitor(abc.ABC):
 
 class Command(abc.ABC):
 
+    def __init__(self):
+        self.annotations = set()
+
     def accept_visitor(self, visitor: CommandVisitor):
         pass
 
@@ -70,6 +73,7 @@ class SkipCommand(Command):
 class AssignmentCommand(Command):
 
     def __init__(self, variable: Variable, expr: BooleanExpression):
+        super().__init__()
         self.variable = variable
         self.expr = expr
 
@@ -90,6 +94,7 @@ class AssignmentCommand(Command):
 class SequentialCompositionCommand(Command):
 
     def __init__(self, command1: Command, command2: Command):
+        super().__init__()
         self.command1 = command1
         self.command2 = command2
 
@@ -114,6 +119,7 @@ class SequentialCompositionCommand(Command):
 class IfElseCommand(Command):
 
     def __init__(self, expr: BooleanExpression, command1: Command, command2: Command):
+        super().__init__()
         self.expr = expr
         self.command1 = command1
         self.command2 = command2

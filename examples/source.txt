@@ -5,4 +5,4 @@ module test:
         z = !y
     endif
     x = x and y or z or true and false
-    x = z
+    x = z @hg
