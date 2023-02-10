@@ -16,6 +16,7 @@ imp_parser = Lark(r"""
             | "#" WORD " "* "\n" command -> comment_left
             | command "#" WORD -> comment_right
             | command " "*
+            | command "@" WORD
 
     variable : WORD
     ?name: WORD
