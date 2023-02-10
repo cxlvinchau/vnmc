@@ -1,0 +1,8 @@
+module test:
+    if true then
+        y = !z
+    else
+        z = !y
+    endif
+    x = x and y or z or true and false
+    x = z
