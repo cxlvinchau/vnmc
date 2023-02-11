@@ -1,3 +1,4 @@
+from collections import deque
 from typing import List, Any
 
 from vnmc.graph.graph import Graph
@@ -14,12 +15,44 @@ def dfs(graph: Graph, nodes: List[Any]):
                 explored.add(succ)
 
 
+def get_path(graph: Graph, node, targets):
+    pred = dict()
+    queue = deque([node])
+    explored = set()
+    targets = set(targets)
+    target = None
+    while queue:
+        current = queue.popleft()
+        if current in targets:
+            target = current
+            break
+        explored.add(current)
+        for succ in graph.get_graph_successors(current):
+            if succ not in explored:
+                pred[succ] = node
+                queue.append(succ)
+
+    # Backtrack
+    if target is None:
+        raise ValueError("Cannot find path to targets")
+
+    path = deque()
+    current = target
+    while current != node:
+        path.appendleft(current)
+        current = pred[current]
+    path.appendleft(current)
+
+    return path
+
+
 def tarjan(graph: Graph, node):
     necklace = []
     active = set()
     dfs_num = 0
     state_to_num = dict()
     sccs = []
+    pred = dict()
 
     def tarjan_dfs(node):
         nonlocal dfs_num
@@ -38,6 +71,7 @@ def tarjan(graph: Graph, node):
                     scc = scc.union(subset)
                 necklace.append((u, scc))
             elif succ not in state_to_num:
+                pred[succ] = node
                 tarjan_dfs(succ)
 
         root, scc = necklace[-1]
@@ -52,4 +86,4 @@ def tarjan(graph: Graph, node):
     # Only return real SCCs
     sccs = [scc for scc in sccs if len(scc) > 1 or next(iter(scc)) in graph.get_graph_successors(next(iter(scc)))]
 
-    return sccs
+    return sccs, pred

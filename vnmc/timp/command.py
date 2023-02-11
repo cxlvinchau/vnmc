@@ -222,12 +222,8 @@ class RepeatCommand(Command):
         return f"{depth*' '}repeat\n{self.command.pretty(depth=depth+1)}\n{depth*'  '}endrepeat"
 
     def get_successors(self, state: Dict[Variable, bool]) -> List[Configuration]:
-        command_succs: List[Configuration] = self.command.get_successors(state)
-        successors = []
-        for config in command_succs:
-            command = SequentialCompositionCommand(command1=config.command, command2=RepeatCommand(self.command))
-            successors.append(Configuration(command, config.state))
-        return successors
+        unfolding = SequentialCompositionCommand(command1=self.command, command2=RepeatCommand(self.command))
+        return unfolding.get_successors(state)
 
     def __eq__(self, other):
         if isinstance(other, RepeatCommand):

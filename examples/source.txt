@@ -1,5 +1,6 @@
 module test:
+    x = false
+    y = false
     repeat
-        x = true @b
-        x = false @a
+        x = false @checkpoint
     endrepeat

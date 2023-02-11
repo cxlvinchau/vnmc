@@ -61,6 +61,9 @@ class TrueLTL(LTLFormula):
     def __str__(self):
         return "true"
 
+    def accept(self, visitor: LTLVisitor):
+        return visitor.visit_true(self)
+
 
 class FalseLTL(LTLFormula):
 
@@ -75,6 +78,9 @@ class FalseLTL(LTLFormula):
 
     def __str__(self):
         return "false"
+
+    def accept(self, visitor: LTLVisitor):
+        return visitor.visit_false(self)
 
 
 class AtomicPropositionLTL(LTLFormula):

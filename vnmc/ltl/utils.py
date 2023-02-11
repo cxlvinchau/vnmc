@@ -4,7 +4,7 @@ from typing import Set, List
 
 from vnmc.automata.automaton import GBA
 from vnmc.ltl.syntax import LTLVisitor, LTLFormula, ConjunctionLTL, UntilLTL, NegationLTL, AtomicPropositionLTL, \
-    DisjunctionLTL, NextLTL, TrueLTL
+    DisjunctionLTL, NextLTL, TrueLTL, FalseLTL
 
 
 # Factory methods
@@ -137,6 +137,9 @@ def _check_consistent(formulae_set: Set[LTLFormula], closure: Set[LTLFormula]):
     conjunctions = [phi for phi in closure if isinstance(phi, ConjunctionLTL)]
     untils = [phi for phi in closure if isinstance(phi, UntilLTL)]
 
+    if FalseLTL() in formulae_set:
+        return False
+
     # Check logical consitency w.r.t. negation
     for phi in formulae_set:
         if phi.negate() in formulae_set:
@@ -162,6 +165,10 @@ def _check_consistent(formulae_set: Set[LTLFormula], closure: Set[LTLFormula]):
     # Check maximality of set
     for phi in closure:
         if phi not in formulae_set and phi.negate() not in formulae_set:
+            return False
+
+    if TrueLTL() in closure:
+        if TrueLTL() not in formulae_set:
             return False
 
     return True

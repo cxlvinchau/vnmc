@@ -107,6 +107,8 @@ class GBA(FiniteAutomaton, Graph):
                     for succ in self.get_successors(init, letter):
                         self.create_transition(fresh_init, letter, succ)
             self.initial_states = {fresh_init}
+            return fresh_init
+        return next(iter(self.initial_states))
 
     def get_graph_successors(self, node):
         if not isinstance(node, _AutomatonState):
