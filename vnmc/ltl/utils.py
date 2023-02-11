@@ -1,6 +1,6 @@
 import itertools
 from itertools import combinations, chain
-from typing import Set
+from typing import Set, List
 
 from vnmc.automata.automaton import GBA
 from vnmc.ltl.syntax import LTLVisitor, LTLFormula, ConjunctionLTL, UntilLTL, NegationLTL, AtomicPropositionLTL, \
@@ -167,21 +167,28 @@ def _check_consistent(formulae_set: Set[LTLFormula], closure: Set[LTLFormula]):
     return True
 
 
-def compute_elementary_sets(phi: LTLFormula):
+def compute_elementary_sets(phi: LTLFormula, atomic_propositions = None):
     closure = compute_closure(phi)
+    if atomic_propositions:
+        closure = closure.union(atomic_propositions)
+        closure = closure.union([ap.negate() for ap in atomic_propositions])
     elementary = [subset for subset in compute_powerset(closure) if _check_consistent(subset, closure)]
     return elementary
 
 
-def ltl_to_gba(phi: LTLFormula):
+def ltl_to_gba(phi: LTLFormula, atomic_propositions: List[AtomicPropositionLTL] = None):
     # Compute elementary sets
-    elementary_sets = compute_elementary_sets(phi)
+    elementary_sets = compute_elementary_sets(phi, atomic_propositions)
     n = len(elementary_sets)
 
     # Compute alphabet and initialize alphabet
     closure = compute_closure(phi)
-    atomic_propositions = [ap for ap in closure if isinstance(ap, AtomicPropositionLTL)]
-    alphabet = [frozenset(subset) for subset in compute_powerset(atomic_propositions)]
+    atomic_propositions = [ap for ap in closure if isinstance(ap, AtomicPropositionLTL)] if atomic_propositions is None \
+        else atomic_propositions
+    closure = set(closure).union(atomic_propositions)
+    nexts = [phi for phi in closure if isinstance(phi, NextLTL)]
+    untils = [phi for phi in closure if isinstance(phi, UntilLTL)]
+    alphabet = set([frozenset(subset) for subset in compute_powerset(atomic_propositions)])
     gba = GBA(alphabet)
 
     # Create GBA states
@@ -192,6 +199,14 @@ def ltl_to_gba(phi: LTLFormula):
         if phi in elementary_set:
             gba.initial_states.add(state)
 
+    for phi in untils:
+        accepting_set = set()
+        for idx, elementary_set in enumerate(elementary_sets):
+            if phi not in elementary_set or phi.phi2 in elementary_set:
+                accepting_set.add(states[idx])
+        gba.accepting_state_sets.append(accepting_set)
+
+    # Create transitions
     for i, j in itertools.product(range(n), range(n)):
         status = True
         for psi in elementary_sets[i]:
@@ -201,6 +216,15 @@ def ltl_to_gba(phi: LTLFormula):
             if isinstance(psi, UntilLTL):
                 if psi.phi2 not in elementary_sets[i] and not (
                         psi.phi1 in elementary_sets[i] and psi in elementary_sets[j]):
+                    status = False
+                    break
+
+        if not status:
+            continue
+
+        for psi in nexts:
+            if psi.phi in elementary_sets[j]:
+                if psi not in elementary_sets[i]:
                     status = False
                     break
 

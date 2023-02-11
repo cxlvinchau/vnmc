@@ -1,7 +1,7 @@
 import lark
 from lark import Lark, v_args
 
-from vnmc.timp.command import AssignmentCommand, SkipCommand, IfElseCommand, SequentialCompositionCommand
+from vnmc.timp.command import AssignmentCommand, SkipCommand, IfElseCommand, SequentialCompositionCommand, RepeatCommand
 from vnmc.timp.expr import Constant, Variable, Disjunction, Conjunction, Negation
 from vnmc.timp.preprocessing import Linearizer, VariableCollector
 from vnmc.timp.module import Module
@@ -12,6 +12,7 @@ imp_parser = Lark(r"""
     ?command: seq
             | "if" expr "then" command "else" command "endif" -> command_if_else
             | "#" WORD " "* "\n" command -> comment_left
+            | "repeat" command "endrepeat" -> command_repeat
             | command "#" WORD -> comment_right
             | command " "*
             
@@ -78,6 +79,9 @@ class TIMPTransformer(lark.Transformer):
 
     def command_seq(self, command1, command2):
         return SequentialCompositionCommand(command1=command1, command2=command2)
+
+    def command_repeat(self, command):
+        return RepeatCommand(command)
 
     def module_def(self, module_name, command):
         return (module_name.value, command)

@@ -99,6 +99,9 @@ class AtomicPropositionLTL(LTLFormula):
     def __str__(self):
         return str(self.symbol)
 
+    def __repr__(self):
+        return f"AP({self.symbol})"
+
 
 class ConjunctionLTL(LTLFormula):
 

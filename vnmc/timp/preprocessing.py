@@ -1,5 +1,5 @@
 from vnmc.timp.command import CommandVisitor, AssignmentCommand, SkipCommand, SequentialCompositionCommand, \
-    IfElseCommand
+    IfElseCommand, RepeatCommand
 from vnmc.timp.expr import BooleanExpressionVisitor, Constant
 
 
@@ -14,6 +14,9 @@ class Linearizer(CommandVisitor):
         return command1 + command2
 
     def visit_if_else(self, element, expr, command1, command2):
+        return [element]
+
+    def visit_repeat(self, element, command):
         return [element]
 
 
@@ -54,6 +57,9 @@ class VariableCollector(CommandVisitor):
 
     def visit_if_else(self, element, expr, command1, command2):
         return expr.union(command1.union(command2))
+
+    def visit_repeat(self, element, command):
+        return command
 
 
 class _ExprSimplifier(BooleanExpressionVisitor):
@@ -124,3 +130,23 @@ class Simplifier(CommandVisitor):
                 return command1
             return command2
         return IfElseCommand(expr=expr, command1=command1, command2=command2)
+
+    def visit_repeat(self, element, command):
+        return RepeatCommand(command=command)
+
+
+class AnnotationCollector(CommandVisitor):
+    def visit_skip(self, element):
+        return element.annotations
+
+    def visit_assignment(self, element, variable, expr):
+        return element.annotations
+
+    def visit_sequential_composition(self, element, command1, command2):
+        return command1.union(command2)
+
+    def visit_if_else(self, element, expr, command1, command2):
+        return command1.union(command2)
+
+    def visit_repeat(self, element, command):
+        return command
