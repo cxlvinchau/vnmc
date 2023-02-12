@@ -1,5 +1,5 @@
 from collections import deque
-from typing import List, Any
+from typing import List, Any, Callable
 
 from vnmc.graph.graph import Graph
 
@@ -87,3 +87,22 @@ def tarjan(graph: Graph, node):
     sccs = [scc for scc in sccs if len(scc) > 1 or next(iter(scc)) in graph.get_graph_successors(next(iter(scc)))]
 
     return sccs, pred
+
+
+def graph_to_dot(graph: Graph, node: Any, node_formatter: Callable[[Any], str] = None):
+    nodes, edges = set(), []
+    queue = deque([node])
+    while queue:
+        current = queue.popleft()
+        nodes.add(current)
+        for succ in graph.get_graph_successors(current):
+            if succ not in nodes and succ not in queue:
+                queue.append(succ)
+            edges.append((current, succ))
+
+    out = "digraph G{\n"
+    for node in nodes:
+        out += f"{str(node)} [label=\"{str(node) if node_formatter is None else node_formatter(node)}\"]\n"
+    for source, target in edges:
+        out += f"{str(source)} -> {str(target)}\n"
+    return out + "}"
