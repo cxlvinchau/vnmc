@@ -8,10 +8,10 @@ from vnmc.timp.utils import timp_to_gba
 
 
 def counterexample_from_path(path):
-    return [s.props["q"].props["config"].pretty() for s in path]
+    return [str(s) for s in path]
 
 
-def model_check(module: Module, phi: LTLFormula):
+def model_check_ltl(module: Module, phi: LTLFormula):
     """
     Checks whether the module statisfies the LTL formula
 
@@ -39,12 +39,15 @@ def model_check(module: Module, phi: LTLFormula):
     init = product.create_single_initial_state()
     init.props["q"] = module_gba.get_initial_state()
 
-    print(module_gba.to_dot(state_formatter=lambda s: s.props["config"].pretty(),
-                            letter_formatter=lambda l: "{" + ", ".join(map(str, l)) + "}"))
-    print()
-    print(neg_phi_gba.to_dot(letter_formatter=lambda l: "{" + ", ".join(map(str, l)) + "}"))
-    print()
-    print(product.to_dot(letter_formatter=lambda l: "{" + ", ".join(map(str, l)) + "}"))
+    with open("module_gba.txt", "w") as f:
+        f.write(module_gba.to_dot(state_formatter=lambda s: s.props["config"].pretty(),
+                                  letter_formatter=lambda l: "{" + ", ".join(map(str, l)) + "}"))
+
+    with open("neg_phi_gba.txt", "w") as f:
+        f.write(neg_phi_gba.to_dot(letter_formatter=lambda l: "{" + ", ".join(map(str, l)) + "}"))
+
+    with open("product_gba.txt", "w") as f:
+        f.write(product.to_dot(letter_formatter=lambda l: "{" + ", ".join(map(str, l)) + "}"))
 
     sccs, pred = tarjan(product, product.get_initial_state())
 

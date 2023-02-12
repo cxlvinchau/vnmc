@@ -22,7 +22,7 @@ class _AutomatonState:
         return self.state_id
 
     def __repr__(self):
-        return f"AutomatonState({self.name})"
+        return f"AutomatonState(name=\"{self.name}\", id={self.state_id})"
 
 
 class _AutomatonTransition:
@@ -154,11 +154,13 @@ class ProductGBA(GBA):
             for letter in self.alphabet:
                 for q_succ, p_succ in itertools.product(self.gba1.get_successors(q, letter),
                                                         self.gba2.get_successors(p, letter)):
-                    if (q_succ.state_id, p_succ.state_id) not in explored:
+                    if (q_succ.state_id, p_succ.state_id) not in self._pair_to_state:
                         state = self.create_state(name=f"({q_succ.name}, {p_succ.name})",
                                                   q=q_succ, p=p_succ)
-                        queue.append(state)
                         self._pair_to_state[(q_succ.state_id, p_succ.state_id)] = state
+
+                        if (q_succ.state_id, p_succ.state_id) not in explored:
+                            queue.append(state)
 
                     self.create_transition(source=current,
                                            letter=letter,

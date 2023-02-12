@@ -205,8 +205,6 @@ def ltl_to_gba(phi: LTLFormula, atomic_propositions: List[AtomicPropositionLTL] 
     # Create GBA states
     states = []
     for idx, elementary_set in enumerate(elementary_sets):
-        print(str(phi))
-        print(idx, list(map(str, elementary_set)))
         state = gba.create_state(name=f"s_{idx}", formulae=elementary_set)
         states.append(state)
         if phi in elementary_set:
