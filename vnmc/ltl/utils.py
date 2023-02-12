@@ -17,7 +17,7 @@ def And(phi1: LTLFormula, phi2: LTLFormula) -> LTLFormula:
 
 
 def Or(phi1: LTLFormula, phi2: LTLFormula) -> LTLFormula:
-    return DisjunctionLTL(phi1, phi2)
+    return NegationLTL(ConjunctionLTL(phi1.negate(), phi2.negate()))
 
 
 def Neg(phi: LTLFormula) -> LTLFormula:
@@ -38,6 +38,10 @@ def F(phi: LTLFormula) -> LTLFormula:
 
 def G(phi: LTLFormula) -> LTLFormula:
     return NegationLTL(F(NegationLTL(phi)))
+
+
+def Implies(phi1: LTLFormula, phi2: LTLFormula):
+    return Or(phi1.negate(), phi2)
 
 
 class LTLFormatter(LTLVisitor):
@@ -174,7 +178,7 @@ def _check_consistent(formulae_set: Set[LTLFormula], closure: Set[LTLFormula]):
     return True
 
 
-def compute_elementary_sets(phi: LTLFormula, atomic_propositions = None):
+def compute_elementary_sets(phi: LTLFormula, atomic_propositions=None):
     closure = compute_closure(phi)
     if atomic_propositions:
         closure = closure.union(atomic_propositions)
@@ -201,6 +205,8 @@ def ltl_to_gba(phi: LTLFormula, atomic_propositions: List[AtomicPropositionLTL] 
     # Create GBA states
     states = []
     for idx, elementary_set in enumerate(elementary_sets):
+        print(str(phi))
+        print(idx, list(map(str, elementary_set)))
         state = gba.create_state(name=f"s_{idx}", formulae=elementary_set)
         states.append(state)
         if phi in elementary_set:
