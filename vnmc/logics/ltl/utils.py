@@ -2,9 +2,9 @@ import itertools
 from itertools import combinations, chain
 from typing import Set, List
 
-from vnmc.automata.automaton import GBA
-from vnmc.ltl.syntax import LTLVisitor, LTLFormula, ConjunctionLTL, UntilLTL, NegationLTL, AtomicPropositionLTL, \
-    DisjunctionLTL, NextLTL, TrueLTL, FalseLTL
+from vnmc.common.automaton import GBA
+from vnmc.logics.ltl.syntax import LTLVisitor, LTLFormula, ConjunctionLTL, UntilLTL, NegationLTL, AtomicPropositionLTL, \
+    NextLTL, TrueLTL, FalseLTL
 
 
 # Factory methods

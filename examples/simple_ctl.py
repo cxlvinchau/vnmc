@@ -1,6 +1,5 @@
-from vnmc.ctl.ctl_factory import AG, Implies, AP, AX
-from vnmc.graph.graph_algorithms import graph_to_dot
-from vnmc.model_checking.ctl_model_checking import timp_to_kripke, model_check_ctl
+from vnmc.logics.ctl.ctl_factory import AG, Implies, AP, AX
+from vnmc.model_checking.ctl_model_checking import model_check_ctl
 from vnmc.timp.parser import imp_parser, TIMPTransformer
 
 with open("source.txt", "r") as f:

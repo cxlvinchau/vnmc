@@ -1,12 +1,10 @@
 from collections import deque
 from typing import Set
 
-from vnmc.ctl.ctl import AtomicPropositionCTL, CTLVisitor, CTLFormula
-from vnmc.ctl.ctl_factory import AP
-from vnmc.graph.graph_algorithms import graph_to_dot
+from vnmc.logics.ctl.ctl import AtomicPropositionCTL, CTLVisitor, CTLFormula
+from vnmc.logics.ctl.ctl_factory import AP
 from vnmc.model_checking.kripke import KripkeStructure
 from vnmc.timp.command import Configuration
-from vnmc.timp.expr import Variable
 from vnmc.timp.module import Module
 from vnmc.timp.preprocessing import VariableCollector
 

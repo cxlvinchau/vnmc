@@ -1,4 +1,4 @@
-from vnmc.ctl.ctl import CTLFormula, DisjunctionCTL, AtomicPropositionCTL, ConjunctionCTL, NegationCTL, \
+from vnmc.logics.ctl.ctl import CTLFormula, DisjunctionCTL, AtomicPropositionCTL, ConjunctionCTL, NegationCTL, \
     ExistsGloballyCTL, ExistsUntilCTL, ExistsNextCTL, TrueCTL
 
 
@@ -32,6 +32,10 @@ def AX(phi: CTLFormula):
 
 def EF(phi: CTLFormula):
     return ExistsUntilCTL(TrueCTL(), phi)
+
+
+def AF(phi: CTLFormula):
+    return NegationCTL(EG(NegationCTL(phi)))
 
 
 def EG(phi: CTLFormula):

@@ -1,7 +1,7 @@
 from collections import deque
 
-from vnmc.automata.automaton import GBA
-from vnmc.ltl.utils import AP
+from vnmc.common.automaton import GBA
+from vnmc.logics.ltl import AP
 from vnmc.timp.command import Configuration
 from vnmc.timp.module import Module
 from vnmc.timp.preprocessing import VariableCollector, AnnotationCollector

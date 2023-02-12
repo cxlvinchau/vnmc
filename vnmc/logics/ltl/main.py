@@ -1,6 +1,5 @@
-from vnmc.graph.graph_algorithms import tarjan
-from vnmc.ltl.utils import LTLFormatter, LTLClosure, compute_closure, compute_subformulae, compute_elementary_sets, \
-    Until, X, And, AP, Neg, Or, ltl_to_gba, F, Implies, G
+from vnmc.common.graph_algorithms import tarjan
+from vnmc.logics.ltl.utils import LTLFormatter, Until, X, And, AP, Neg, ltl_to_gba, Implies, G
 
 phi = Until(And(AP("a"), AP("b")), X(Neg(AP("c"))))
 phi = Until(AP("a"), AP("b"))

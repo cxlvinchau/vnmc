@@ -1,7 +1,7 @@
 from typing import Set, Dict, Union
 
-from vnmc.ctl.ctl import AtomicPropositionCTL
-from vnmc.graph.graph import Graph
+from vnmc.logics.ctl.ctl import AtomicPropositionCTL
+from vnmc.common.graph import Graph
 
 
 class _KripkeState:

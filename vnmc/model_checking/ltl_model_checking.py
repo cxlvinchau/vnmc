@@ -1,7 +1,7 @@
-from vnmc.automata.automaton import ProductGBA
-from vnmc.graph.graph_algorithms import tarjan, get_path
-from vnmc.ltl.syntax import LTLFormula, AtomicPropositionLTL
-from vnmc.ltl.utils import ltl_to_gba, compute_closure
+from vnmc.common.automaton import ProductGBA
+from vnmc.common.graph_algorithms import tarjan, get_path
+from vnmc.logics.ltl.syntax import LTLFormula, AtomicPropositionLTL
+from vnmc.logics.ltl import ltl_to_gba, compute_closure
 from vnmc.timp.module import Module
 from vnmc.timp.preprocessing import AnnotationCollector
 from vnmc.timp.utils import timp_to_gba

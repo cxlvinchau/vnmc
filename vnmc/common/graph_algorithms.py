@@ -1,7 +1,7 @@
 from collections import deque
 from typing import List, Any, Callable
 
-from vnmc.graph.graph import Graph
+from vnmc.common.graph import Graph
 
 
 def dfs(graph: Graph, nodes: List[Any]):
