@@ -4,15 +4,16 @@ from typing import List, Any, Callable
 from vnmc.common.graph import Graph
 
 
-def dfs(graph: Graph, nodes: List[Any]):
+def dfs(graph: Graph, nodes: List[Any], forward = True):
     stack = list(nodes)
     explored = set()
     while stack:
         current = stack.pop()
         explored.add(current)
-        for succ in graph.get_graph_successors(current):
+        for succ in (graph.get_graph_successors(current) if forward else graph.get_graph_predecessors(current)):
             if succ not in explored:
-                explored.add(succ)
+                stack.append(succ)
+    return explored
 
 
 def get_path(graph: Graph, node, targets):
