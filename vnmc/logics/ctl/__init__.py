@@ -1,1 +1,1 @@
-from ctl_factory import AP, And, Or, Neg, EX, AX, EW, EF, AF, EG, AG, EU, AU
+from vnmc.logics.ctl.ctl_factory import AP, And, Or, Neg, EX, AX, EW, EF, AF, EG, AG, EU, AU
