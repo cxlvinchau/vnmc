@@ -1,11 +1,14 @@
 import abc
 from typing import Set, Dict
 
+from numba import njit
+
 from vnmc.common.graph import Graph, GraphNode, GraphEdge
 
 import numpy as np
 
 from vnmc.common.graph_algorithms import dfs
+from vnmc.probabilistic.numba_utils import compute_transient_distribution_numba
 
 
 class DTMCState(GraphNode):
@@ -31,7 +34,7 @@ class DTMC(Graph):
         self.transitions: Set[DTMCTransition] = set()
         self.state_ids = 0
         self.is_built = False
-        self.representation = None
+        self.engine = None
 
     def create_state(self, name, atomic_propositions=None):
         state = DTMCState(name=name, state_id=self.state_ids, atomic_propositions=atomic_propositions)
@@ -44,22 +47,24 @@ class DTMC(Graph):
         self.transitions.add(transition)
         return transition
 
-    def build(self, representation_type):
-        if representation_type == "sparse":
-            self.representation = DTMCSparseRepresentation(self)
-        elif representation_type == "dense":
-            self.representation = DTMCDenseRepresentation(self)
+    def build(self, engine):
+        if engine == "sparse":
+            self.engine = DTMCSparseEngine(self)
+        elif engine == "dense":
+            self.engine = DTMCDenseEngine(self)
+        elif engine == "dense-numba":
+            self.engine = DTMCDenseNumbaEngine(self)
         else:
             raise ValueError("Invalid representation type")
 
     def compute_transient_distribution(self, initial_distribution: Dict[DTMCState, float], t: int):
-        return self.representation.compute_transient_distribution(initial_distribution, t)
+        return self.engine.compute_transient_distribution(initial_distribution, t)
 
     def compute_bounded_reachability(self, bad_states: Set[DTMCState], target_states: Set[DTMCState], t: int):
-        return self.representation.compute_bounded_reachability(bad_states, target_states, t)
+        return self.engine.compute_bounded_reachability(bad_states, target_states, t)
 
     def compute_unbounded_reachability(self, bad_states: Set[DTMCState], target_states: Set[DTMCState]):
-        return self.representation.compute_unbounded_reachability(bad_states, target_states)
+        return self.engine.compute_unbounded_reachability(bad_states, target_states)
 
     def get_graph_successors(self, node):
         return set([t.target for t in self.transitions if t.source == node and t.get_probability() > 0])
@@ -68,7 +73,7 @@ class DTMC(Graph):
         return set([t.source for t in self.transitions if t.target == node and t.get_probability() > 0])
 
 
-class DTMCRepresentation(abc.ABC):
+class DTMCEngine(abc.ABC):
 
     def __init__(self, dtmc: DTMC):
         self.dtmc = dtmc
@@ -89,13 +94,14 @@ class DTMCRepresentation(abc.ABC):
     def compute_unbounded_reachability(self, bad_states: Set[DTMCState], target_states: Set[DTMCState]):
         pass
 
-class DTMCSparseRepresentation(DTMCRepresentation):
+
+class DTMCSparseEngine(DTMCEngine):
 
     def build(self):
         pass
 
 
-class DTMCDenseRepresentation(DTMCRepresentation):
+class DTMCDenseEngine(DTMCEngine):
 
     def __init__(self, dtmc):
         super().__init__(dtmc)
@@ -106,17 +112,18 @@ class DTMCDenseRepresentation(DTMCRepresentation):
             i, j = self.state_to_idx[transition.source], self.state_to_idx[transition.target]
             self.probability_matrix[i][j] = transition.get_probability()
 
-    def _compute_initial_distribution(self, initial_distribution: Dict[DTMCState, float]):
+    def compute_initial_distribution(self, initial_distribution: Dict[DTMCState, float]):
         result = np.zeros(len(self.state_to_idx))
         for state, probability in initial_distribution.items():
             result[self.state_to_idx[state]] = probability
         return result
 
     def compute_transient_distribution(self, initial_distribution: Dict[DTMCState, float], t: int):
-        result = self._compute_initial_distribution(initial_distribution)
+        result = self.compute_initial_distribution(initial_distribution)
         for _ in range(t):
             result = result.dot(self.probability_matrix)
-        return {state: result[self.state_to_idx[state]] for state in self.dtmc.states if result[self.state_to_idx[state]] > 0}
+        return {state: result[self.state_to_idx[state]] for state in self.dtmc.states if
+                result[self.state_to_idx[state]] > 0}
 
     def compute_bounded_reachability(self, bad_states: Set[DTMCState], target_states: Set[DTMCState], t: int):
         return self._compute_reachability(bad_states=bad_states, target_states=target_states, t=t, unbounded=False)
@@ -143,3 +150,33 @@ class DTMCDenseRepresentation(DTMCRepresentation):
                 result = transition_matrix.dot(result) + b
         return {state: result[idx] for idx, state in enumerate(undetermined_states)}
 
+
+class DTMCDenseNumbaEngine(DTMCDenseEngine):
+
+    def __init__(self, dtmc):
+        super().__init__(dtmc)
+
+        # Execute numba functions to trigger compilation
+        DTMCDenseNumbaEngine._compute_transient_distribution_numba(np.zeros(2), np.zeros((2, 2)), t=1)
+
+    @staticmethod
+    @njit
+    def _compute_transient_distribution_numba(initial_distribution: np.ndarray, transition_matrix: np.ndarray, t: int):
+        result = initial_distribution
+        for _ in range(t):
+            result = np.dot(result, transition_matrix)
+        return result
+
+    def compute_transient_distribution(self, initial_distribution: Dict[DTMCState, float], t: int):
+        init = self.compute_initial_distribution(initial_distribution)
+        result = self._compute_transient_distribution_numba(initial_distribution=init,
+                                                            transition_matrix=self.probability_matrix,
+                                                            t=t)
+        return {state: result[self.state_to_idx[state]] for state in self.dtmc.states if
+                result[self.state_to_idx[state]] > 0}
+
+    def compute_bounded_reachability(self, bad_states: Set[DTMCState], target_states: Set[DTMCState], t: int):
+        pass
+
+    def compute_unbounded_reachability(self, bad_states: Set[DTMCState], target_states: Set[DTMCState]):
+        pass

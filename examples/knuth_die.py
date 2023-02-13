@@ -1,5 +1,8 @@
+import numpy as np
+
 from vnmc.common.graph_algorithms import graph_to_dot
 from vnmc.probabilistic.dtmc import DTMC
+import time
 
 dtmc = DTMC()
 
@@ -33,8 +36,11 @@ dtmc.create_transition(s45, 0.5, s[5])
 for outcome in range(1, 7):
     dtmc.create_transition(s[outcome], 1, s[outcome])
 
-dtmc.build(representation_type="dense")
+dtmc.build(engine="dense-numba")
 
-distribution = dtmc.compute_transient_distribution({s0: 1}, t=10000)
 
-print(dtmc.compute_unbounded_reachability(bad_states=set(), target_states={s[1]}))
+start = time.time()
+distribution = dtmc.compute_transient_distribution({s0: 1}, t=10000000)
+end = time.time()
+print(distribution)
+print(f"{end-start} seconds")
